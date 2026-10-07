@@ -1,14 +1,8 @@
-from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app import config
-from app.db import seed_admin
-from app.routers import analysis, auth, industries, reports
-
-
+from app.db import init_db
+...
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    seed_admin()
+    init_db()
     yield
 
 
