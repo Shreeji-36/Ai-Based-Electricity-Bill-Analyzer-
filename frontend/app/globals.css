@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+  background-image:
+    radial-gradient(900px 400px at 10% -10%, rgba(20, 184, 166, 0.15), transparent),
+    radial-gradient(700px 400px at 100% 0%, rgba(56, 189, 248, 0.10), transparent);
+  background-attachment: fixed;
+}
+
+@layer components {
+  .card { @apply rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur; }
+  .btn { @apply inline-flex items-center justify-center rounded-xl bg-teal-500 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-teal-400 disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-ghost { @apply inline-flex items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-sm font-medium transition hover:bg-white/10 disabled:opacity-50; }
+  .input { @apply w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 outline-none placeholder:text-slate-500 focus:border-teal-400; }
+  .label { @apply mb-1 block text-sm text-slate-400; }
+}
