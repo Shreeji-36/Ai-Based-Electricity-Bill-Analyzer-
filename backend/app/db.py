@@ -1,22 +1,9 @@
-from app import config
-from app.core.security import hash_password
 from sqlalchemy import select
 from app import config
 from app.core.security import hash_password
 from app.database import Base, SessionLocal, engine
 from app.models import User
 
-
-USERS: dict[str, dict] = {}
-
-
-def seed_admin() -> None:
-    USERS[config.ADMIN_EMAIL] = {
-        "email": config.ADMIN_EMAIL,
-        "name": "Administrator",
-        "password": hash_password(config.ADMIN_PASSWORD),
-        "role": "admin",
-    }
 
 def init_db() -> None:
     Base.metadata.create_all(engine)
