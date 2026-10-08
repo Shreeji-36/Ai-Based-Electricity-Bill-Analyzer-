@@ -22,6 +22,8 @@ class UserOut(BaseModel):
 
 class Bill(BaseModel):
     consumer_number: str | None = None
+    billing_date: str | None = None
+    tariff: str | None = None
     units: float = Field(gt=0, le=10_000_000)
     amount: float = Field(gt=0, le=1_000_000_000)
     days: int = Field(default=30, ge=1, le=62)
