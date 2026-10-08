@@ -1,5 +1,11 @@
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app import config
 from app.db import init_db
-...
+from app.routers import analysis, auth, bills, industries, reports
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
@@ -15,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth, industries, analysis, reports):
+for r in (auth, industries, analysis, reports, bills):
     app.include_router(r.router)
 
 
