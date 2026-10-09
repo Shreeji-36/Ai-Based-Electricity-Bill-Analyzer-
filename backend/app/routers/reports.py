@@ -18,7 +18,7 @@ TYPES = {
 @router.post("/{fmt}")
 def download(fmt: Literal["pdf", "xlsx", "csv"], data: AnalysisIn,
              _=Depends(require_roles("admin", "analyst", "viewer"))):
-    result = analyze(data.industry, data.bill.model_dump(), data.hours)
+    result = analyze(data.industry, data.bill.model_dump(), data.hours, data.qty)
     media, builder = TYPES[fmt]
     return Response(builder(result), media_type=media,
                     headers={"Content-Disposition": f"attachment; filename=energy-report.{fmt}"})
