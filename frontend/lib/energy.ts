@@ -2,7 +2,7 @@ import { Industry } from "./industries";
 
 export type Bill = { units: number; amount: number; days: number };
 export type Row = {
-  name: string; units: number; cost: number; pct: number; efficiency: number;
+  id?: string; name: string; units: number; cost: number; pct: number; efficiency: number;
   qty?: number; hours?: number;
 };
 
@@ -19,7 +19,7 @@ export function analyze(
     const n = qty[m.id] ?? 1;          // how many machines of this type
     const h = hours[m.id] || 0;        // hours per day for EACH machine
     const units = m.kw * n * h * days * (m.efficiency / 100 + 0.2);
-    return { name: m.name, units, cost: 0, pct: 0, efficiency: m.efficiency, qty: n, hours: h };
+    return { id: m.id, name: m.name, units, cost: 0, pct: 0, efficiency: m.efficiency, qty: n, hours: h };
   });
 
   // Scale down if estimate exceeds the real bill
@@ -27,7 +27,7 @@ export function analyze(
   if (est > bill.units) rows = rows.map(r => ({ ...r, units: (r.units / est) * bill.units * 0.95 }));
 
   const machineTotal = rows.reduce((s, r) => s + r.units, 0);
-  rows.push({ name: "Others", units: Math.max(bill.units - machineTotal, 0), cost: 0, pct: 0, efficiency: 90, qty: 0, hours: 0 });
+  rows.push({ id: "others", name: "Others", units: Math.max(bill.units - machineTotal, 0), cost: 0, pct: 0, efficiency: 90, qty: 0, hours: 0 });
 
   rows = rows.map(r => ({
     ...r,
@@ -52,6 +52,6 @@ export function analyze(
              saveUnits, saveCost: Math.round(saveUnits * rate) };
   });
 
-  return { rows, rate, top, low, best, worst, nextUnits, nextBill, tips,
+  return { rows, rawUnits: Math.round(est), rate, top, low, best, worst, nextUnits, nextBill, tips,
            totalSavings: tips.reduce((s, t) => s + t.saveCost, 0) };
 }
