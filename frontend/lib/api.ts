@@ -65,6 +65,7 @@ function demo(p: Payload): Result {
     bill: p.bill,
     rate: +r.rate.toFixed(2),
     rows: r.rows,
+    estimate: { raw_units: r.rawUnits, scaled: r.rawUnits > p.bill.units },
     highest: r.top.name, lowest: r.low.name,
     most_efficient: r.best.name, least_efficient: r.worst.name,
     forecast: { units: r.nextUnits, amount: r.nextBill },
