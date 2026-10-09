@@ -27,6 +27,7 @@ function Wizard({ ind }: { ind: Industry }) {
     consumer_number: "", billing_date: "", tariff: "", units: "", amount: "", days: "30",
   });
   const [hours, setHours] = useState<Record<string, string>>({});
+  const [qty, setQty] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
@@ -67,12 +68,18 @@ function Wizard({ ind }: { ind: Industry }) {
 
   async function submit() {
     const h: Record<string, number> = {};
+    const q: Record<string, number> = {};
     for (const m of ind.machines) {
+      const n = Number(qty[m.id] ?? 1);
       const v = Number(hours[m.id] || 0);
+      if (!Number.isInteger(n) || n < 0 || n > 5000)
+        return setError(`${m.name}: quantity must be a whole number from 0 to 5000.`);
       if (!(v >= 0 && v <= 24)) return setError(`${m.name}: hours must be between 0 and 24.`);
+      q[m.id] = n;
       h[m.id] = v;
     }
-    if (Object.values(h).every((v) => v === 0)) return setError("Enter hours for at least one machine.");
+    if (ind.machines.every((m) => q[m.id] * h[m.id] === 0))
+      return setError("Enter quantity and hours for at least one machine.");
 
     const payload: Payload = {
       industry: ind.id,
@@ -83,6 +90,7 @@ function Wizard({ ind }: { ind: Industry }) {
         billing_date: bill.billing_date || undefined,
       },
       hours: h,
+      qty: q,
     };
     setBusy(true); setError("");
     try {
@@ -134,12 +142,26 @@ function Wizard({ ind }: { ind: Industry }) {
           </>
         ) : (
           <>
-            <h2 className="text-lg font-semibold">Average hours used per day</h2>
+            <h2 className="text-lg font-semibold">Machines and average hours per day</h2>
+            <p className="text-sm text-slate-400">
+              Enter how many machines of each type you have, and how many hours each one runs per day.
+            </p>
             <div className="space-y-3">
+              <div className="grid grid-cols-[1fr_5rem_5rem] gap-3 text-xs text-slate-400">
+                <span>Machine</span>
+                <span className="text-right">Qty</span>
+                <span className="text-right">Hrs/day</span>
+              </div>
               {ind.machines.map((m) => (
-                <div key={m.id} className="flex items-center justify-between gap-4">
-                  <label className="text-sm">{m.name}</label>
-                  <input className="input !w-28 text-right" type="number" min={0} max={24} step={0.5}
+                <div key={m.id} className="grid grid-cols-[1fr_5rem_5rem] items-center gap-3">
+                  <label className="text-sm">
+                    {m.name}
+                    <span className="block text-xs text-slate-500">{m.kw} kW each</span>
+                  </label>
+                  <input className="input text-right" type="number" min={0} max={5000} step={1}
+                    placeholder="qty" value={qty[m.id] ?? "1"}
+                    onChange={(e) => setQty({ ...qty, [m.id]: e.target.value })} />
+                  <input className="input text-right" type="number" min={0} max={24} step={0.5}
                     placeholder="hrs" value={hours[m.id] ?? ""}
                     onChange={(e) => setHours({ ...hours, [m.id]: e.target.value })} />
                 </div>
