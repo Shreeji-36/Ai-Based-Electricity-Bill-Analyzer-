@@ -34,7 +34,7 @@ export type Result = {
     peak_load_kw: number;
     bill_anomaly: { is_anomaly: boolean; score: number; method: string; message: string };
     machine_anomalies: { machine: string; share: number; expected: number; message: string }[];
-    recommendations: { machine: string; text: string; save_units: number; save_cost: number }[];
+        recommendations: { machine: string; text: string; kind?: string; save_units: number; save_cost: number }[];
     total_savings: number;
   };
 };
