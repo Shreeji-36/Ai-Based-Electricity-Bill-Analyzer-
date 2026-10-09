@@ -20,8 +20,9 @@ def run_analysis(data: AnalysisIn, user=Depends(require_roles("admin", "analyst"
                        .order_by(Bill.created_at)).all()
     history = [b.units for b in prior][-24:]
 
-    result = analyze(data.industry, data.bill.model_dump(), data.hours)
-    peak = sum(m["kw"] * 0.85 for m in INDUSTRIES[data.industry]["machines"]
+    result = analyze(data.industry, data.bill.model_dump(), data.hours, data.qty)
+    peak = sum(m["kw"] * data.qty.get(m["id"], 1) * 0.85
+               for m in INDUSTRIES[data.industry]["machines"]
                if data.hours.get(m["id"], 0) > 0)
     result["ai"] = enrich(result, history, peak)
 
