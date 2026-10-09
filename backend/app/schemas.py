@@ -33,6 +33,7 @@ class AnalysisIn(BaseModel):
     industry: Literal["pharmacy", "dairy", "steel", "coldstorage"]
     bill: Bill
     hours: dict[str, float]
+    qty: dict[str, int] = Field(default_factory=dict)
 
     @field_validator("hours")
     @classmethod
@@ -40,4 +41,12 @@ class AnalysisIn(BaseModel):
         for key, h in v.items():
             if not 0 <= h <= 24:
                 raise ValueError(f"Hours for '{key}' must be between 0 and 24")
+        return v
+
+    @field_validator("qty")
+    @classmethod
+    def check_qty(cls, v: dict[str, int]):
+        for key, n in v.items():
+            if not 0 <= n <= 5000:
+                raise ValueError(f"Quantity for '{key}' must be between 0 and 5000")
         return v
