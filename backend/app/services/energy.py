@@ -1,7 +1,9 @@
 from app.data.industries import INDUSTRIES
 
 
-def analyze(industry: str, bill: dict, hours: dict[str, float]) -> dict:
+def analyze(industry: str, bill: dict, hours: dict[str, float],
+            qty: dict[str, int] | None = None) -> dict:
+    qty = qty or {}
     ind = INDUSTRIES[industry]
     units_total, days = bill["units"], bill["days"]
     rate = bill["amount"] / units_total
@@ -9,8 +11,10 @@ def analyze(industry: str, bill: dict, hours: dict[str, float]) -> dict:
     rows = []
     for m in ind["machines"]:
         h = hours.get(m["id"], 0)
-        est = m["kw"] * h * days * (m["efficiency"] / 100 + 0.2)
-        rows.append({"name": m["name"], "units": est, "efficiency": m["efficiency"]})
+        n = qty.get(m["id"], 1)  # number of machines of this type
+        est = m["kw"] * n * h * days * (m["efficiency"] / 100 + 0.2)
+        rows.append({"name": m["name"], "units": est, "efficiency": m["efficiency"],
+                     "qty": n, "hours": h})
 
     estimated = sum(r["units"] for r in rows)
     if estimated > units_total:  # cap at 95% of the real bill
@@ -19,7 +23,7 @@ def analyze(industry: str, bill: dict, hours: dict[str, float]) -> dict:
             r["units"] *= scale
 
     others = max(units_total - sum(r["units"] for r in rows), 0)
-    rows.append({"name": "Others", "units": others, "efficiency": 90})
+    rows.append({"name": "Others", "units": others, "efficiency": 90, "qty": 0, "hours": 0})
 
     for r in rows:
         r["cost"] = round(r["units"] * rate)
