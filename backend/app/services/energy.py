@@ -13,7 +13,7 @@ def analyze(industry: str, bill: dict, hours: dict[str, float],
         h = hours.get(m["id"], 0)
         n = qty.get(m["id"], 1)  # number of machines of this type
         est = m["kw"] * n * h * days * (m["efficiency"] / 100 + 0.2)
-        rows.append({"name": m["name"], "units": est, "efficiency": m["efficiency"],
+        rows.append({"id": m["id"], "name": m["name"], "units": est, "efficiency": m["efficiency"],
                      "qty": n, "hours": h})
 
     estimated = sum(r["units"] for r in rows)
@@ -23,7 +23,7 @@ def analyze(industry: str, bill: dict, hours: dict[str, float],
             r["units"] *= scale
 
     others = max(units_total - sum(r["units"] for r in rows), 0)
-    rows.append({"name": "Others", "units": others, "efficiency": 90, "qty": 0, "hours": 0})
+    rows.append({"id": "others", "name": "Others", "units": others, "efficiency": 90, "qty": 0, "hours": 0})
 
     for r in rows:
         r["cost"] = round(r["units"] * rate)
@@ -50,6 +50,7 @@ def analyze(industry: str, bill: dict, hours: dict[str, float],
         "bill": bill,
         "rate": round(rate, 2),
         "rows": rows,
+        "estimate": {"raw_units": round(estimated), "scaled": estimated > units_total},
         "highest": by_units[0]["name"],
         "lowest": by_units[-1]["name"],
         "most_efficient": by_eff[0]["name"],
