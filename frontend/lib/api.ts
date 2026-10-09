@@ -24,6 +24,7 @@ export type Result = {
   bill: { units: number; amount: number; days: number; billing_date?: string | null };
   rate: number;
   rows: Row[];
+  estimate?: { raw_units: number; scaled: boolean };
   highest: string; lowest: string; most_efficient: string; least_efficient: string;
   forecast: { units: number; amount: number };
   tips: { text: string; save_units: number; save_cost: number }[];
