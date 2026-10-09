@@ -1,15 +1,25 @@
 import { Industry } from "./industries";
 
 export type Bill = { units: number; amount: number; days: number };
-export type Row = { name: string; units: number; cost: number; pct: number; efficiency: number };
+export type Row = {
+  name: string; units: number; cost: number; pct: number; efficiency: number;
+  qty?: number; hours?: number;
+};
 
-export function analyze(ind: Industry, bill: Bill, hours: Record<string, number>) {
+export function analyze(
+  ind: Industry,
+  bill: Bill,
+  hours: Record<string, number>,
+  qty: Record<string, number> = {}
+) {
   const rate = bill.units > 0 ? bill.amount / bill.units : ind.rate;
   const days = bill.days || 30;
 
   let rows: Row[] = ind.machines.map(m => {
-    const units = m.kw * (hours[m.id] || 0) * days * (m.efficiency / 100 + 0.2);
-    return { name: m.name, units, cost: 0, pct: 0, efficiency: m.efficiency };
+    const n = qty[m.id] ?? 1;          // how many machines of this type
+    const h = hours[m.id] || 0;        // hours per day for EACH machine
+    const units = m.kw * n * h * days * (m.efficiency / 100 + 0.2);
+    return { name: m.name, units, cost: 0, pct: 0, efficiency: m.efficiency, qty: n, hours: h };
   });
 
   // Scale down if estimate exceeds the real bill
@@ -17,7 +27,7 @@ export function analyze(ind: Industry, bill: Bill, hours: Record<string, number>
   if (est > bill.units) rows = rows.map(r => ({ ...r, units: (r.units / est) * bill.units * 0.95 }));
 
   const machineTotal = rows.reduce((s, r) => s + r.units, 0);
-  rows.push({ name: "Others", units: Math.max(bill.units - machineTotal, 0), cost: 0, pct: 0, efficiency: 90 });
+  rows.push({ name: "Others", units: Math.max(bill.units - machineTotal, 0), cost: 0, pct: 0, efficiency: 90, qty: 0, hours: 0 });
 
   rows = rows.map(r => ({
     ...r,
