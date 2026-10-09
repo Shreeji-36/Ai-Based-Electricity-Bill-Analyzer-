@@ -93,14 +93,23 @@ function demo(p: Payload): Result {
 }
 
 export async function runAnalysis(p: Payload): Promise<Result> {
-  if (!API || !getToken()) return demo(p);
-  const res = await fetch(`${API}/api/analysis`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
-    body: JSON.stringify(p),
-  });
-  if (!res.ok) return fail(res, "Please check your inputs and try again.");
-  return res.json();
+  if (!API) return demo(p);
+  const token = getToken();
+  // Signed in: saved analysis. Not signed in: public preview (nothing is saved).
+  const url = token ? `${API}/api/analysis` : `${API}/api/analysis/preview`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader() },
+      body: JSON.stringify(p),
+    });
+    if (!res.ok) return await fail(res, "Please check your inputs and try again.");
+    return await res.json();
+  } catch (e) {
+    // Backend unreachable and not signed in: fall back to the offline demo
+    if (!token && e instanceof TypeError) return demo(p);
+    throw e;
+  }
 }
 
 export async function uploadBill(file: File): Promise<OcrResult> {
