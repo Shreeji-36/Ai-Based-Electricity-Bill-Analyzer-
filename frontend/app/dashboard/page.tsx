@@ -143,7 +143,12 @@ export default function Dashboard() {
           : <ul className="space-y-3">
               {ai.recommendations.map((t, i) => (
                 <li key={i} className="rounded-xl border border-white/10 p-3 text-sm">
-                  <p>{t.machine && <b>{t.machine}: </b>}{t.text}</p>
+                                    <p>
+                    {t.machine && <b>{t.machine}: </b>}{t.text}
+                    {t.kind && (
+                      <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs text-slate-300">{t.kind}</span>
+                    )}
+                  </p>
                   <p className="mt-1 text-xs text-teal-300">
                     Saves about {num(t.save_units)} kWh · {inr(t.save_cost)} per month
                   </p>
