@@ -11,9 +11,13 @@ export type Payload = {
     consumer_number?: string; tariff?: string; billing_date?: string;
   };
   hours: Record<string, number>;
+  qty: Record<string, number>;
 };
 
-export type Row = { name: string; units: number; cost: number; pct: number; efficiency: number };
+export type Row = {
+  name: string; units: number; cost: number; pct: number; efficiency: number;
+  qty?: number; hours?: number;
+};
 
 export type Result = {
   industry: string;
@@ -52,7 +56,7 @@ async function fail(res: Response, fallback: string): Promise<never> {
 /* ---------- Demo mode (no backend): same shape as the API result ---------- */
 function demo(p: Payload): Result {
   const ind = getIndustry(p.industry)!;
-  const r = local(ind, p.bill, p.hours);
+  const r = local(ind, p.bill, p.hours, p.qty);
   const f = [1, 2, 3].map((i) => Math.round(p.bill.units * Math.pow(1.03, i)));
   const tips = r.tips.map((t) => ({ text: t.text, save_units: t.saveUnits, save_cost: t.saveCost }));
   return {
@@ -73,7 +77,7 @@ function demo(p: Payload): Result {
         amount: f.map((v) => Math.round(v * r.rate)),
       },
       peak_load_kw: Math.round(
-        ind.machines.reduce((s, m) => s + ((p.hours[m.id] || 0) > 0 ? m.kw * 0.85 : 0), 0)
+        ind.machines.reduce((s, m) => s + ((p.hours[m.id] || 0) > 0 ? m.kw * (p.qty?.[m.id] ?? 1) * 0.85 : 0), 0)
       ),
       bill_anomaly: {
         is_anomaly: false, score: 0, method: "demo",
