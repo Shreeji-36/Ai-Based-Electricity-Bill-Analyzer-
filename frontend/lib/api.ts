@@ -15,7 +15,7 @@ export type Payload = {
 };
 
 export type Row = {
-  name: string; units: number; cost: number; pct: number; efficiency: number;
+  id?: string; name: string; units: number; cost: number; pct: number; efficiency: number;
   qty?: number; hours?: number;
 };
 
