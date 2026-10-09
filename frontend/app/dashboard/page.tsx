@@ -73,6 +73,14 @@ export default function Dashboard() {
         {ai.bill_anomaly.is_anomaly ? "⚠ " : ""}{ai.bill_anomaly.message}
       </div>
 
+      {r.estimate?.scaled && (
+        <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-sm text-amber-200">
+          ⚠ Your machine quantities and hours add up to about {num(r.estimate.raw_units)} kWh, but the bill is only{" "}
+          {num(r.bill.units)} kWh. The machine figures were scaled down to fit the bill, so please re-check the
+          quantities, hours per day and bill units.
+        </div>
+      )}
+
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi label="Total units" value={`${num(r.bill.units)} kWh`} />
         <Kpi label="Total amount" value={inr(r.bill.amount)} sub={`${r.rate} ₹/unit`} />
