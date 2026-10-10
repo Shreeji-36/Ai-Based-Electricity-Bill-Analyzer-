@@ -32,6 +32,11 @@ function Wizard({ ind }: { ind: Industry }) {
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
 
+  // Wake the (free, sleeping) backend and OCR service while the user types the bill values
+  useEffect(() => {
+    if (API) fetch(`${API}/api/warmup`).catch(() => {});
+  }, []);
+
   async function onFile(file?: File) {
     if (!file) return;
     setError(""); setMsg("");
