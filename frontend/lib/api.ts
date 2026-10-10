@@ -41,7 +41,8 @@ export type Result = {
 
 export type OcrResult = {
   consumer_number: string | null; billing_date: string | null; tariff: string | null;
-  units: number | null; amount: number | null; days: number | null; confidence: number;
+    units: number | null; amount: number | null; days: number | null; confidence: number;
+  units_unit?: string | null; warnings?: string[];
 };
 
 const authHeader = (): Record<string, string> => {
