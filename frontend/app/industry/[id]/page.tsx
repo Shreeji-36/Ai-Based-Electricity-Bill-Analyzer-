@@ -137,7 +137,7 @@ function Wizard({ ind }: { ind: Industry }) {
               <input type="file" accept=".jpg,.jpeg,.png,.pdf"
                 onChange={(e) => onFile(e.target.files?.[0])}
                 className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-teal-500 file:px-4 file:py-2 file:font-semibold file:text-slate-950" />
-              {busy && <p className="mt-2 text-sm text-slate-400">Reading bill…</p>}
+              {busy && <p className="mt-2 text-sm text-slate-400">Reading bill… the first upload can take up to a minute while the free servers wake up.</p>}
               {msg && <p className="mt-2 text-sm text-teal-300">{msg}</p>}
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
