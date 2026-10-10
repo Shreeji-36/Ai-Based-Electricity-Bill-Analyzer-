@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { API, runAnalysis, uploadBill, type Payload } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { getIndustry, type Industry } from "@/lib/industries";
