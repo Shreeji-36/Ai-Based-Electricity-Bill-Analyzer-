@@ -15,7 +15,7 @@ OCR_URL = os.getenv("OCR_URL", "http://localhost:8001")
 async def upload(file: UploadFile = File(...), _=Depends(require_roles("admin", "analyst"))):
     data = await file.read()
     try:
-        async with httpx.AsyncClient(timeout=60) as client:
+        async with httpx.AsyncClient(timeout=120) as client:
             r = await client.post(f"{OCR_URL}/extract",
                                   files={"file": (file.filename, data, file.content_type)})
     except httpx.HTTPError:
