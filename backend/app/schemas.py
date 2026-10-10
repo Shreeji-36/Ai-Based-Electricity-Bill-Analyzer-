@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 class RegisterIn(BaseModel):
     name: str = Field(min_length=2, max_length=60)
-    email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    email: str = Field(max_length=120, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     password: str = Field(min_length=8, max_length=64)
 
 
@@ -21,9 +21,9 @@ class UserOut(BaseModel):
 
 
 class Bill(BaseModel):
-    consumer_number: str | None = None
-    billing_date: str | None = None
-    tariff: str | None = None
+    consumer_number: str | None = Field(default=None, max_length=30)
+    billing_date: str | None = Field(default=None, max_length=20)
+    tariff: str | None = Field(default=None, max_length=40)
     units: float = Field(gt=0, le=10_000_000)
     amount: float = Field(gt=0, le=1_000_000_000)
     days: int = Field(default=30, ge=1, le=62)
