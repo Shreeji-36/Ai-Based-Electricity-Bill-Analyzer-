@@ -51,7 +51,13 @@ function Wizard({ ind }: { ind: Industry }) {
         amount: d.amount != null ? String(d.amount) : b.amount,
         days: d.days != null ? String(d.days) : b.days,
       }));
-      setMsg(`Bill read (confidence ${Math.round((d.confidence ?? 0) * 100)}%). Please check the values.`);
+      const pct = Math.round((d.confidence ?? 0) * 100);
+      const notes = (d.warnings ?? []).join(" ");
+      setMsg(
+        pct < 50
+          ? `Could only read part of this bill (confidence ${pct}%). Please fill in the missing values. ${notes}`
+          : `Bill read (confidence ${pct}%). Please check the values. ${notes}`
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
