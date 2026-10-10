@@ -1,5 +1,7 @@
+import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+import httpx
+from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app import config
 from app.db import init_db
@@ -28,3 +30,17 @@ for r in (auth, industries, analysis, reports, bills):
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+def _wake_ocr():
+    try:
+        httpx.get(os.getenv("OCR_URL", "http://localhost:8001").rstrip("/") + "/health", timeout=90)
+    except Exception:
+        pass
+
+
+@app.get("/api/warmup")
+def warmup(background: BackgroundTasks):
+    """Called when a visitor opens the site: wakes the OCR service (free servers sleep when idle)."""
+    background.add_task(_wake_ocr)
+    return {"status": "warming"}
