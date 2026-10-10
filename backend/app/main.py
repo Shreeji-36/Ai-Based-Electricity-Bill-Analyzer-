@@ -1,8 +1,9 @@
 import os
 from contextlib import asynccontextmanager
 import httpx
-from fastapi import BackgroundTasks, FastAPI
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app import config
 from app.db import init_db
 from app.routers import analysis, auth, bills, industries, reports
@@ -16,12 +17,24 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="AI Industrial Energy Intelligence API", version="1.0.0", lifespan=lifespan)
 
+ALLOWED_ORIGINS = [config.FRONTEND_ORIGIN, "http://localhost:3000"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[config.FRONTEND_ORIGIN, "http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_error(request: Request, exc: Exception):
+    # Without this, a crash returns no CORS headers and the browser only says "Failed to fetch".
+    origin = request.headers.get("origin")
+    headers = {"Access-Control-Allow-Origin": origin, "Vary": "Origin"} if origin in ALLOWED_ORIGINS else {}
+    return JSONResponse({"detail": "Something went wrong on the server. Please try again."},
+                        status_code=500, headers=headers)
+
 
 for r in (auth, industries, analysis, reports, bills):
     app.include_router(r.router)
