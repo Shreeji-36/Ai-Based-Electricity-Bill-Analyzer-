@@ -116,7 +116,15 @@ export async function runAnalysis(p: Payload): Promise<Result> {
 export async function uploadBill(file: File): Promise<OcrResult> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(`${API}/api/bills/upload`, { method: "POST", headers: authHeader(), body: form });
+  let res: Response;
+  try {
+    res = await fetch(`${API}/api/bills/upload`, { method: "POST", headers: authHeader(), body: form });
+  } catch {
+    throw new Error(
+      "Could not reach the server. It may be waking up (free servers sleep when idle). " +
+        "Please wait a minute and try again, or enter the values manually."
+    );
+  }
   if (!res.ok) return fail(res, "Could not read this bill. Please enter the values manually.");
   return res.json();
 }
