@@ -16,13 +16,24 @@ async def upload(file: UploadFile = File(...), _=Depends(require_roles("admin", 
     data = await file.read()
     try:
         async with httpx.AsyncClient(timeout=120) as client:
-            r = await client.post(f"{OCR_URL}/extract",
+            r = await client.post(f"{OCR_URL.rstrip('/')}/extract",
                                   files={"file": (file.filename, data, file.content_type)})
     except httpx.HTTPError:
-        raise HTTPException(503, "OCR service unavailable. Please enter the bill values manually.")
+        raise HTTPException(503, "OCR service unavailable. Please wait a minute and try again, "
+                                 "or enter the bill values manually.")
+    if r.status_code in (502, 503, 504):  # free Render servers answer like this while waking up
+        raise HTTPException(503, "The OCR service is waking up (free servers sleep when idle). "
+                                 "Please wait about a minute and upload again.")
+    try:
+        body = r.json()
+    except ValueError:
+        raise HTTPException(502, "The OCR service sent an unexpected reply. "
+                                 "Please try again or enter the bill values manually.")
     if r.status_code != 200:
-        raise HTTPException(r.status_code, r.json().get("detail", "OCR failed"))
-    return r.json()  # frontend shows these values for the user to confirm or edit
+        detail = body.get("detail") if isinstance(body, dict) else None
+        raise HTTPException(r.status_code if r.status_code < 500 else 502,
+                            detail if isinstance(detail, str) else "OCR failed")
+    return body  # frontend shows these values for the user to confirm or edit
 
 
 @router.get("")
