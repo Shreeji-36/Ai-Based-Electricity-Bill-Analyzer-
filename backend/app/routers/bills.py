@@ -12,18 +12,26 @@ router = APIRouter(prefix="/api/bills", tags=["bills"])
 OCR_URL = os.getenv("OCR_URL", "http://localhost:8001")
 
 
+class OcrAsleep(Exception):
+    """The OCR service did not wake up in time."""
+
+
 async def _call_ocr(data: bytes, filename: str, content_type: str | None) -> httpx.Response:
-    """Calls the OCR service; retries a couple of times while a free server is still waking up."""
-    r = None
-    for attempt in range(3):
-        async with httpx.AsyncClient(timeout=120) as client:
-            r = await client.post(f"{OCR_URL.rstrip('/')}/extract",
-                                  files={"file": (filename, data, content_type)})
-        if r.status_code not in (502, 503, 504):
-            break
-        if attempt < 2:
-            await asyncio.sleep(12)
-    return r
+    """Wakes the OCR service (free Render servers sleep after 15 min idle), waits for it, then uploads."""
+    base = OCR_URL.rstrip("/")
+    async with httpx.AsyncClient(timeout=180) as client:
+        awake = False
+        for _ in range(24):  # up to 24 x 5 s = 2 minutes
+            try:
+                if (await client.get(f"{base}/health", timeout=10)).status_code == 200:
+                    awake = True
+                    break
+            except httpx.HTTPError:
+                pass
+            await asyncio.sleep(5)
+        if not awake:
+            raise OcrAsleep()
+        return await client.post(f"{base}/extract", files={"file": (filename, data, content_type)})
 
 
 @router.get("/ocr-status")
@@ -63,6 +71,10 @@ async def upload(file: UploadFile = File(...), _=Depends(require_roles("admin", 
     data = await file.read()
     try:
         r = await _call_ocr(data, file.filename, file.content_type)
+    except OcrAsleep:
+        raise HTTPException(503, "The OCR service is still starting up (free servers sleep when idle and "
+                                 "need 1 to 2 minutes to wake). It is awake soon, so please upload again in "
+                                 "a minute.")
     except httpx.HTTPError:
         raise HTTPException(503, "OCR service unavailable. Please try again in a minute, "
                                  "or enter the bill values manually.")
